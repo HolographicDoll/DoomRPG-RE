@@ -81,31 +81,31 @@ Game_t* Game_init(Game_t* game, DoomRPG_t* doomRpg)
 		entityMonst->ce.doomRpg = doomRpg;
 	} while (++i < 100);
 
-	strncpy(game->mapNames[MAPNAME_ENTRANCE], "Entrance", 24);
-	strncpy(game->mapNames[MAPNAME_JUNCTION], "Junction", 24);
-	strncpy(game->mapNames[MAPNAME_S01], "Sector 1", 24);
-	strncpy(game->mapNames[MAPNAME_S02], "Sector 2", 24);
-	strncpy(game->mapNames[MAPNAME_S03], "Sector 3", 24);
-	strncpy(game->mapNames[MAPNAME_S04], "Sector 4", 24);
-	strncpy(game->mapNames[MAPNAME_S05], "Sector 5", 24);
-	strncpy(game->mapNames[MAPNAME_S06], "Sector 6", 24);
-	strncpy(game->mapNames[MAPNAME_S07], "Sector 7", 24);
-	strncpy(game->mapNames[MAPNAME_JUNCTION_DESTROYED], "Junction", 24);
-	strncpy(game->mapNames[MAPNAME_REACTOR], "Reactor", 24);
+	strncpy(game->mapNames[MAPNAME_ENTRANCE], "Entrance", sizeof(game->mapNames[MAPNAME_ENTRANCE]));
+	strncpy(game->mapNames[MAPNAME_JUNCTION], "Junction", sizeof(game->mapNames[MAPNAME_JUNCTION]));
+	strncpy(game->mapNames[MAPNAME_S01], "Sector 1", sizeof(game->mapNames[MAPNAME_S01]));
+	strncpy(game->mapNames[MAPNAME_S02], "Sector 2", sizeof(game->mapNames[MAPNAME_S02]));
+	strncpy(game->mapNames[MAPNAME_S03], "Sector 3", sizeof(game->mapNames[MAPNAME_S03]));
+	strncpy(game->mapNames[MAPNAME_S04], "Sector 4", sizeof(game->mapNames[MAPNAME_S04]));
+	strncpy(game->mapNames[MAPNAME_S05], "Sector 5", sizeof(game->mapNames[MAPNAME_S05]));
+	strncpy(game->mapNames[MAPNAME_S06], "Sector 6", sizeof(game->mapNames[MAPNAME_S06]));
+	strncpy(game->mapNames[MAPNAME_S07], "Sector 7", sizeof(game->mapNames[MAPNAME_S07]));
+	strncpy(game->mapNames[MAPNAME_JUNCTION_DESTROYED], "Junction", sizeof(game->mapNames[MAPNAME_JUNCTION_DESTROYED]));
+	strncpy(game->mapNames[MAPNAME_REACTOR], "Reactor", sizeof(game->mapNames[MAPNAME_REACTOR]));
 
-	strncpy(game->mapFiles[MAPFILE_INTRO], "/intro.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L01], "/level01.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L02], "/level02.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L03], "/level03.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L04], "/level04.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L05], "/level05.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L06], "/level06.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_L07], "/level07.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_JUNCTION], "/junction.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_JUNCTION_DESTROYED], "/junction_destroyed.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_ITEMS], "/items.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_REACTOR], "/reactor.bsp", 24);
-	strncpy(game->mapFiles[MAPFILE_END_GAME], "/endgame.bsp", 24);
+	strncpy(game->mapFiles[MAPFILE_INTRO], "/intro.bsp", sizeof(game->mapFiles[MAPFILE_INTRO]));
+	strncpy(game->mapFiles[MAPFILE_L01], "/level01.bsp", sizeof(game->mapFiles[MAPFILE_L01]));
+	strncpy(game->mapFiles[MAPFILE_L02], "/level02.bsp", sizeof(game->mapFiles[MAPFILE_L02]));
+	strncpy(game->mapFiles[MAPFILE_L03], "/level03.bsp", sizeof(game->mapFiles[MAPFILE_L03]));
+	strncpy(game->mapFiles[MAPFILE_L04], "/level04.bsp", sizeof(game->mapFiles[MAPFILE_L04]));
+	strncpy(game->mapFiles[MAPFILE_L05], "/level05.bsp", sizeof(game->mapFiles[MAPFILE_L05]));
+	strncpy(game->mapFiles[MAPFILE_L06], "/level06.bsp", sizeof(game->mapFiles[MAPFILE_L06]));
+	strncpy(game->mapFiles[MAPFILE_L07], "/level07.bsp", sizeof(game->mapFiles[MAPFILE_L07]));
+	strncpy(game->mapFiles[MAPFILE_JUNCTION], "/junction.bsp", sizeof(game->mapFiles[MAPFILE_JUNCTION]));
+	strncpy(game->mapFiles[MAPFILE_JUNCTION_DESTROYED], "/junction_destroyed.bsp", sizeof(game->mapFiles[MAPFILE_JUNCTION_DESTROYED]));
+	strncpy(game->mapFiles[MAPFILE_ITEMS], "/items.bsp", sizeof(game->mapFiles[MAPFILE_ITEMS]));
+	strncpy(game->mapFiles[MAPFILE_REACTOR], "/reactor.bsp", sizeof(game->mapFiles[MAPFILE_REACTOR]));
+	strncpy(game->mapFiles[MAPFILE_END_GAME], "/endgame.bsp", sizeof(game->mapFiles[MAPFILE_END_GAME]));
 
 	return game;
 }
@@ -1513,7 +1513,7 @@ boolean Game_executeEvent(Game_t* game, int event, int codeId, int arg1, int arg
 		// 18 Hide(byte x, byte y)
 		case EV_HIDE: { // EV_HIDE
 			entity = Game_findMapEntityXY(game, (arg1 & 255) << 6, ((arg1 >> 8) & 255) << 6);
-			for (entity; entity != NULL; entity = entNext) {
+			for (; entity != NULL; entity = entNext) {
 				entNext = entity->nextOnTile;
 				if ((entity->info & 0x200000) == 0x0 && entity->def->eType != 1) {
 					game->doomRpg->render->mapSprites[(entity->info & 0xFFFF) - 1].info |= 0x10000;
@@ -2024,7 +2024,7 @@ void Game_saveState(Game_t* game, int mapId, int x, int y, int angleDir, boolean
 	DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
 	Game_saveWorldState(game);
 	if (!z) {
-		if (game->newMapName && SDL_strcmp(game->newMapName, "")) {
+		if (game->newMapName[0] != '\0') {
 			DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
 			Game_savePlayerState(game, "Player", game->newMapName, game->newDestX, game->newDestY, game->newAngle);
 			game->newMapName[0] = '\0';

@@ -13,7 +13,7 @@
 
 #define INIT_ALLSOUNDS	1
 
-static soundTable[MAX_AUDIOFILES] = {
+static int soundTable[MAX_AUDIOFILES] = {
 	5039, 5040, 5042, 5043, 5044, 5045, 5046, 5047, 5048, 5049, 5050,
 	5051, 5052, 5053, 5054, 5055, 5057, 5058, 5059, 5060, 5061, 5062,
 	5063, 5064, 5065, 5066, 5067, 5068, 5069, 5070, 5071, 5072, 5073,
@@ -80,7 +80,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 		int fSize;
 
 		if ((i == 0) || (i == 1) || (i == 3)) { // Midi Files
-			snprintf(fileName, sizeof(fileName), "%03d.mid", soundTable[i]);
+			snprintf(fileName, sizeof(fileName), "%d.mid", soundTable[i]);
 
 			fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 			//rw = SDL_RWFromMem(fdata, fSize);
@@ -95,7 +95,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 			SDL_free(fdata);
 		}
 		else {
-			snprintf(fileName, sizeof(fileName), "%03d.wav", soundTable[i]);
+			snprintf(fileName, sizeof(fileName), "%d.wav", soundTable[i]);
 
 			fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 			rw = SDL_RWFromMem(fdata, fSize);
@@ -292,7 +292,7 @@ void Sound_loadSound(Sound_t* sound, int chan, short resourceID)
 #if INIT_ALLSOUNDS
 		sChannel->mediaAudioSound = (Mix_Chunk*) sound->audioFiles[id].ptr;
 #else
-		snprintf(fileName, sizeof(fileName), "%03d.wav", resourceID);
+		snprintf(fileName, sizeof(fileName), "%d.wav", resourceID);
 		fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 
 		rw = SDL_RWFromMem(fdata, fSize);
@@ -392,7 +392,7 @@ void Sound_freeSounds(Sound_t* sound)
 	} while (++chan < (MAX_SOUNDCHANNELS + 1));
 }
 
-int Sound_getFromResourceID(resourceID)
+int Sound_getFromResourceID(int resourceID)
 {
 	for (int i = 0; i < MAX_AUDIOFILES; i++) {
 		if (soundTable[i] == resourceID) {

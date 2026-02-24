@@ -1166,10 +1166,11 @@ void File_writeInt(SDL_RWops* rw, int i)
 }
 void File_writeLong(SDL_RWops* rw, int i)
 {
-	long lData;
+	// ZIP files use 4-byte integers
+	int32_t lData;
 	lData = SDL_SwapLE32(i);
 	if (rw) {
-		SDL_RWwrite(rw, &lData, sizeof(long), 1);
+		SDL_RWwrite(rw, &lData, sizeof(int32_t), 1);
 	}
 }
 
@@ -1219,10 +1220,11 @@ int File_readInt(SDL_RWops* rw)
 
 int File_readLong(SDL_RWops* rw)
 {
-	long lData;
+	// ZIP files use 4-byte integers
+	int32_t lData;
 
 	if (rw) {
-		SDL_RWread(rw, &lData, sizeof(long), 1);
+		SDL_RWread(rw, &lData, sizeof(int32_t), 1);
 	}
 
 	return (int)SDL_SwapLE32(lData);

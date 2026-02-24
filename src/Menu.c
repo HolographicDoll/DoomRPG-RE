@@ -106,8 +106,9 @@ void Menu_setNotes(Menu_t* menu)
 			nbStr = (char*)0x0;
 		}
 		else {
-			strncpy(text, nbStr, (int)(tmpStr - (int)nbStr));
-			text[(int)(tmpStr -(int)nbStr)] = '\0';
+			size_t len = tmpStr - nbStr;
+			strncpy(text, nbStr, len);
+			text[len] = '\0';
 			item = &menuSystem->items[menuSystem->numItems++];
 			nbStr = text;
 		}
@@ -1963,7 +1964,7 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 				sdlVideo.integerScaling ^= true;
 				strncpy(menuSystem->items[itemId].textField2, sdlVideo.integerScaling ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 
-				SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
+				SDL_RenderSetIntegerScale(sdlVideo.renderer, (SDL_bool)sdlVideo.integerScaling);
 			}
 			else if (itemId == 5) { // New resolution Option
 				sdlVideo.resolutionIndex++;
