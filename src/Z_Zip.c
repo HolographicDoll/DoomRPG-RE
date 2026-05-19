@@ -12,7 +12,10 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+// malloc.h only exists on Linux and Windows (not BSD/macOS)
+#if defined(__linux__) || defined(_WIN32) || defined(_WIN64)
 #include <malloc.h>
+#endif
 #include <zlib.h>
 
 #include "DoomRPG.h"

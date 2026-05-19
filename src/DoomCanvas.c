@@ -3241,7 +3241,7 @@ void DoomCanvas_setState(DoomCanvas_t* doomCanvas, int stateNum)
 
 byte DoomCanvas_checkState(DoomCanvas_t* doomCanvas)
 {
-
+	return 0;
 }
 
 void DoomCanvas_invalidateRectAndUpdateView(DoomCanvas_t* doomCanvas)

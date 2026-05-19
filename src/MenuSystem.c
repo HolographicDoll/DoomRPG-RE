@@ -89,7 +89,7 @@ char* MenuSystem_buildDivider(MenuSystem_t* menuSystem, char* str)
 	}
 	menuSystem->stringBuffer[idnx] = ' ';
 
-	strncpy(&menuSystem->stringBuffer[idnx+1], str, 32);
+	strncpy(&menuSystem->stringBuffer[idnx+1], str, sizeof(menuSystem->stringBuffer) - idnx - 1);
 
 	idnx = idnx + 1 + len;
 	menuSystem->stringBuffer[idnx] = ' ';
@@ -267,12 +267,12 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 
 				int i3 = (doomCanvas->displayRect.h % 8) >> 1;
 				int i4 = (doomCanvas->displayRect.w % 8) >> 1;
-				for (i4; i4 < doomCanvas->displayRect.w; i4 += 8) {
+				for (; i4 < doomCanvas->displayRect.w; i4 += 8) {
 					DoomRPG_drawLine(doomRpg, i4, doomRpg->hud->statusTopBarHeight, i4, (doomCanvas->displayRect.h - doomRpg->hud->statusBarHeight) - 1);
 				}
 
 				int i5 = doomRpg->hud->statusTopBarHeight + i3;
-				for (i5; i5 < doomCanvas->displayRect.h - 20; i5 += 8) {
+				for (; i5 < doomCanvas->displayRect.h - 20; i5 += 8) {
 					DoomRPG_drawLine(doomRpg, 0, i5, doomCanvas->displayRect.w, i5);
 				}
 				DoomRPG_setColor(doomRpg, 0x000000);
@@ -370,79 +370,76 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 			SDL_memcpy(textField, mItem->textField, sizeof(mItem->textField));
 			SDL_memcpy(textField2, mItem->textField2, sizeof(mItem->textField2));
 
-			if (textField != '\0')
+		if ((mItem->flags & 8) && ((menuSystem->menu == MENU_BINDINGS) || (menuSystem->menu == MENU_INGAME_BINDINGS))) { // New Flag
+			if (doomCanvas->time > menuSystem->nextMsgTime) {
+				menuSystem->nextMsgTime = doomCanvas->time + 1000;
+				menuSystem->nextMsg++;
+			}
+
+			int j;
+			for (j = 0; j < KEYBINDS_MAX; j++)
 			{
-				if ((mItem->flags & 8) && ((menuSystem->menu == MENU_BINDINGS) || (menuSystem->menu == MENU_INGAME_BINDINGS))) { // New Flag
-					if (doomCanvas->time > menuSystem->nextMsgTime) {
-						menuSystem->nextMsgTime = doomCanvas->time + 1000;
-						menuSystem->nextMsg++;
-					}
-
-					int j;
-					for (j = 0; j < KEYBINDS_MAX; j++)
-					{
-						if (keyMappingTemp[mItem->action].keyBinds[j] == -1) {
-							break;
-						}
-					}
-
-					if (j == 0) {
-						SDL_snprintf(textField, sizeof(textField), "Unbound");
-					}
-					else {
-						if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_CONTROLLER_BUTTON) {
-							SDL_snprintf(textField, sizeof(textField), "%s", SDL_GameControllerGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
-						}
-						else if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_MOUSE_BUTTON) {
-							SDL_snprintf(textField, sizeof(textField), "%s", SDL_MouseGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
-						}
-						else{
-							SDL_snprintf(textField, sizeof(textField), "%s", SDL_GetScancodeName(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j]));
-						}
-					}
-					DoomRPG_setFontColor(menuSystem->doomRpg, 0xff80C0FF);
-				}
-				else {
-					DoomRPG_setFontColor(menuSystem->doomRpg, 0xffffffff);
-				}
-
-				//if ((mItem->flags & 1) != 0) {
-				//	DoomRPG_setColor(menuSystem->doomRpg, -3355444);
-				//}
-				//else {
-				//	DoomRPG_setColor(menuSystem->doomRpg, -1);
-				//}
-
-				if ((textField[0] != '\0') && (mItem->flags & 2) != 0) {
-					int length = (((strlen(textField) << 16) >> 9) * local_38) >> 8;
-					i10 = (menuSystem->maxItems == 0 || menuSystem->numItems <= menuSystem->maxItems) ? doomCanvas->SCR_CX - length : (doomCanvas->SCR_CX - 6) - length;
-				}
-				else if (textField2[0] != '\0') {
-					int i12 = (doomCanvas->SCR_CX + 64) - 2;
-
-					if (menuSystem->maxItems != 0) {
-						i12 -= local_34;
-					}
-
-					DoomCanvas_drawFont(doomCanvas, textField2, i12, i2, 9, 0, -1, isLargerFont);
-				}
-
-				if (menuSystem->type != 5 && i11 == menuSystem->selectedIndex) {
-					DoomCanvas_drawImage(doomCanvas, &menuSystem->imgHand, i10, i2 + local_2c, 40);
-					i10 += 2;
-				}
-				if (textField[0] != '\0') {
-					DoomCanvas_drawFont(doomCanvas, textField, i10, i2, 0, 0, -1, isLargerFont);
+				if (keyMappingTemp[mItem->action].keyBinds[j] == -1) {
+					break;
 				}
 			}
 
-			i2 += local_28;
-			if (menuSystem->maxItems != 0 && i11 == (menuSystem->scrollIndex + menuSystem->maxItems) - 1) {
-				break;
+			if (j == 0) {
+				SDL_snprintf(textField, sizeof(textField), "Unbound");
 			}
+			else {
+				if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_CONTROLLER_BUTTON) {
+					SDL_snprintf(textField, sizeof(textField), "%s", SDL_GameControllerGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
+				}
+				else if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_MOUSE_BUTTON) {
+					SDL_snprintf(textField, sizeof(textField), "%s", SDL_MouseGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
+				}
+				else{
+					SDL_snprintf(textField, sizeof(textField), "%s", SDL_GetScancodeName(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j]));
+				}
+			}
+			DoomRPG_setFontColor(menuSystem->doomRpg, 0xff80C0FF);
+		}
+		else {
+			DoomRPG_setFontColor(menuSystem->doomRpg, 0xffffffff);
 		}
 
-		if (menuSystem->setBind) {
+		//if ((mItem->flags & 1) != 0) {
+		//	DoomRPG_setColor(menuSystem->doomRpg, -3355444);
+		//}
+		//else {
+		//	DoomRPG_setColor(menuSystem->doomRpg, -1);
+		//}
+
+		if ((textField[0] != '\0') && (mItem->flags & 2) != 0) {
+			int length = (((strlen(textField) << 16) >> 9) * local_38) >> 8;
+			i10 = (menuSystem->maxItems == 0 || menuSystem->numItems <= menuSystem->maxItems) ? doomCanvas->SCR_CX - length : (doomCanvas->SCR_CX - 6) - length;
+		}
+		else if (textField2[0] != '\0') {
+			int i12 = (doomCanvas->SCR_CX + 64) - 2;
+
+			if (menuSystem->maxItems != 0) {
+				i12 -= local_34;
+			}
+
+			DoomCanvas_drawFont(doomCanvas, textField2, i12, i2, 9, 0, -1, isLargerFont);
+		}
+
+		if (menuSystem->type != 5 && i11 == menuSystem->selectedIndex) {
+			DoomCanvas_drawImage(doomCanvas, &menuSystem->imgHand, i10, i2 + local_2c, 40);
+			i10 += 2;
+		}
+		if (textField[0] != '\0') {
+			DoomCanvas_drawFont(doomCanvas, textField, i10, i2, 0, 0, -1, isLargerFont);
+		}
+
+		i2 += local_28;
+		if (menuSystem->maxItems != 0 && i11 == (menuSystem->scrollIndex + menuSystem->maxItems) - 1) {
+			break;
+		}
+	}
+
+	if (menuSystem->setBind) {
 			SDL_SetRenderDrawBlendMode(sdlVideo.renderer, SDL_BLENDMODE_BLEND);
 			DoomRPG_setColor(menuSystem->doomRpg, 0xC0000000);
 			DoomRPG_fillRect(menuSystem->doomRpg, 0, 0, doomCanvas->displayRect.w, doomCanvas->displayRect.h);

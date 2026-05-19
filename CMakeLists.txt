@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
-project(DoomRPG LANGUAGES C)
+project(DoomRPG
+	VERSION 0.2.2
+	LANGUAGES C
+)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if(MSVC)
 	add_definitions("/D_CRT_SECURE_NO_WARNINGS")

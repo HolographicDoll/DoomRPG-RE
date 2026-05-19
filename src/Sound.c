@@ -80,7 +80,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 		int fSize;
 
 		if ((i == 0) || (i == 1) || (i == 3)) { // Midi Files
-			snprintf(fileName, sizeof(fileName), "%03d.mid", soundTable[i]);
+			snprintf(fileName, sizeof(fileName), "%d.mid", soundTable[i]);
 
 			fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 			//rw = SDL_RWFromMem(fdata, fSize);
@@ -95,7 +95,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 			SDL_free(fdata);
 		}
 		else {
-			snprintf(fileName, sizeof(fileName), "%03d.wav", soundTable[i]);
+			snprintf(fileName, sizeof(fileName), "%d.wav", soundTable[i]);
 
 			fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 			rw = SDL_RWFromMem(fdata, fSize);
@@ -292,7 +292,7 @@ void Sound_loadSound(Sound_t* sound, int chan, short resourceID)
 #if INIT_ALLSOUNDS
 		sChannel->mediaAudioSound = (Mix_Chunk*) sound->audioFiles[id].ptr;
 #else
-		snprintf(fileName, sizeof(fileName), "%03d.wav", resourceID);
+		snprintf(fileName, sizeof(fileName), "%d.wav", resourceID);
 		fdata = readZipFileEntry(fileName, &zipFile, &fSize);
 
 		rw = SDL_RWFromMem(fdata, fSize);

@@ -362,15 +362,15 @@ boolean Render_beginLoadMap(Render_t* render, int mapNameID)
 
 		render->ioBufferPos = 0;
 		if (render->mapNameID <= MAP_MENU) {
-			render->ioBuffer = DoomRPG_fileOpenRead(render->doomRpg, "/menu.bsp");
+			render->ioBuffer = (char*)DoomRPG_fileOpenRead(render->doomRpg, "/menu.bsp");
 		}
 		else {
-			render->ioBuffer = DoomRPG_fileOpenRead(render->doomRpg, render->doomRpg->game->mapFiles[render->mapNameID - 1]);
+			render->ioBuffer = (char*)DoomRPG_fileOpenRead(render->doomRpg, render->doomRpg->game->mapFiles[render->mapNameID - 1]);
 		}
 
-		ioBuffer = render->ioBuffer;
+		ioBuffer = (byte*)render->ioBuffer;
 
-		strncpy(render->mapName, ioBuffer, MAPNAMESTRLEN);
+		strncpy(render->mapName, (const char*)ioBuffer, MAPNAMESTRLEN);
 		render->ioBufferPos = MAPNAMESTRLEN;
 
 		r = DoomRPG_byteAtNext(ioBuffer, &render->ioBufferPos);
@@ -421,7 +421,7 @@ boolean Render_beginLoadMapData(Render_t* render)
 	printf("---Render_beginLoadMapData---\n");
 
 	mem = DoomRPG_freeMemory();
-	ioBuffer = render->ioBuffer;
+	ioBuffer = (byte*)render->ioBuffer;
 
 	SDL_free(render->mapTextureTexels);
 	render->mapTextureTexels = SDL_malloc(256 * sizeof(int));
@@ -699,7 +699,7 @@ boolean Render_beginLoadMapData(Render_t* render)
 		while (render->mapStringCount < numStrings) {
 			strSize = DoomRPG_shortAtNext(ioBuffer, &render->ioBufferPos);
 			render->mapStringsIDs[render->mapStringCount] = SDL_calloc(strSize + 1, sizeof(char));
-			strncpy(render->mapStringsIDs[render->mapStringCount], &ioBuffer[render->ioBufferPos], strSize);
+			strncpy(render->mapStringsIDs[render->mapStringCount], (const char*)&ioBuffer[render->ioBufferPos], strSize);
 			render->ioBufferPos += strSize;
 			render->mapStringCount++;
 		}
@@ -2136,15 +2136,15 @@ void Render_renderSpriteObject(Render_t* render, Sprite_t* sprite)
 
 	if (!(sprite->info & 0x80000000)) {
 		if (sprite->ent == NULL) {
-			anim = ((render->animFrameTime + (8 * (byte)sprite->ent)) / 250) % 4;
+			anim = ((render->animFrameTime + (8 * (byte)(uintptr_t)sprite->ent)) / 250) % 4;
 		}
 		else if (sprite->ent->monster == NULL)
 		{
 			if (sprite->ent->def->eType != 2) {
-				anim = ((render->animFrameTime + (8 * (byte)sprite->ent)) / 250) % 4;
+				anim = ((render->animFrameTime + (8 * (byte)(uintptr_t)sprite->ent)) / 250) % 4;
 			}
 			else {
-				anim = ((render->doomRpg->doomCanvas->time + (256 * (byte)sprite->ent)) / 6000) % 2;
+				anim = ((render->doomRpg->doomCanvas->time + (256 * (byte)(uintptr_t)sprite->ent)) / 6000) % 2;
 			}
 		}
 		else if (anim == 6)
@@ -2173,10 +2173,10 @@ void Render_renderSpriteObject(Render_t* render, Sprite_t* sprite)
 				}
 				sprite->info = sprite->info & 0xffffe1ff | anim << 9;
 				if (sprite->ent->monster->ce.mType == 4) { // Phantom / Lost Soul / Nightmare
-					sprite->ent->monster->animFrameTime = render->doomRpg->doomCanvas->time + ((byte)sprite->ent) + 250;
+					sprite->ent->monster->animFrameTime = render->doomRpg->doomCanvas->time + ((byte)(uintptr_t)sprite->ent) + 250;
 				}
 				else {
-					sprite->ent->monster->animFrameTime = render->doomRpg->doomCanvas->time + (8 * (byte)sprite->ent) + 4000;
+					sprite->ent->monster->animFrameTime = render->doomRpg->doomCanvas->time + (8 * (byte)(uintptr_t)sprite->ent) + 4000;
 				}
 			}
 		}
@@ -2429,7 +2429,7 @@ void Render_getSpanMode(Render_t* render, int palOffset, byte spanMode)
 	int i;
 	int color, red, green, blue;
 
-	render->spanPalettes = render->mediaPalettes + palOffset;
+	render->spanPalettes = (unsigned short*)(render->mediaPalettes + palOffset);
 
 	if (render->damageBlend) {
 		for (i = 0; i < 16; i++) {
@@ -2522,7 +2522,7 @@ void Render_SpanMode0(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	spanPalettes = render->spanPalettes;
 	mediaTexels = render->mediaTexels;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 
 	for (; param_6 >= 8; param_6 -= 8) {
 
@@ -2576,7 +2576,7 @@ void Render_SpanMode1(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		pixels[0] ^= spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2594,7 +2594,7 @@ void Render_SpanMode2(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		pixels[0] |= spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2612,7 +2612,7 @@ void Render_SpanMode3(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		pixels[0] &= spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2630,7 +2630,7 @@ void Render_SpanMode4(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2650,7 +2650,7 @@ void Render_SpanMode5(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2669,7 +2669,7 @@ void Render_SpanMode6(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2688,7 +2688,7 @@ void Render_SpanMode7(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf] + (pixels[0] & 0xF7DE);
@@ -2708,7 +2708,7 @@ void Render_SpanMode8(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = (pixels[0] | 0x10820) - spanPalettes[mediaTexels[param_4 >> 13] >> ((param_4 >> 10) & 4) & 0xf];
@@ -2730,7 +2730,7 @@ void Render_SpanMode9(Render_t* render, int param_2, int param_3, int param_4, i
 	pitch = render->pitch >> 1;
 	mediaTexels = render->mediaTexels;
 	spanPalettes = render->spanPalettes;
-	pixels = render->pixels + pitch * param_3 + param_2;
+	pixels = (unsigned short*)(render->pixels + pitch * param_3 + param_2);
 	while (param_6--, param_6 >= 0) {
 
 		color = pixels[0];

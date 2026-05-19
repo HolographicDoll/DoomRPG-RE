@@ -4,6 +4,8 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <fluidsynth.h>
 
 #include "DoomRPG.h"
@@ -32,6 +34,26 @@ SDLVidModes_t sdlVideoModes[14] =
 	{800, 600}
 };
 
+// Cleanup function for atexit and signal handlers
+void SDL_EmergencyCleanup(void)
+{
+	// Only release input devices, don't do full cleanup
+	// as atexit/signal handlers should be minimal
+	SDL_SetRelativeMouseMode(SDL_FALSE);
+	SDL_ShowCursor(SDL_ENABLE);
+}
+
+// Signal handler for crashes
+void SDL_CrashHandler(int sig)
+{
+	printf("Caught signal %d, releasing input devices\n", sig);
+	SDL_EmergencyCleanup();
+	SDL_Quit();
+	// Re-raise the signal to get proper crash behavior
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+
 void SDL_InitVideo(void)
 {
 	Uint32 flags;
@@ -54,15 +76,23 @@ void SDL_InitVideo(void)
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
     }
 
-    flags = SDL_WINDOW_OPENGL| SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+	flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
     video_w = sdlVideoModes[sdlVideo.resolutionIndex].width;
     video_h = sdlVideoModes[sdlVideo.resolutionIndex].height;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 
+	// Register cleanup handlers to release input devices on crash
+	atexit(SDL_EmergencyCleanup);
+	signal(SIGSEGV, SDL_CrashHandler);
+	signal(SIGABRT, SDL_CrashHandler);
+	signal(SIGTERM, SDL_CrashHandler);
+	signal(SIGINT, SDL_CrashHandler);
+
 	if (sdlVideo.fullScreen) {
-		flags |= SDL_WINDOW_FULLSCREEN;
+		// Use borderless fullscreen for better app switching
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
 	// Set the highdpi flags - this makes a big difference on Macs with
@@ -70,6 +100,8 @@ void SDL_InitVideo(void)
 	flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
 	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);
+	// Ensure window does not grab input
+	SDL_SetWindowGrab(sdlVideo.window, SDL_FALSE);
 
     if (!sdlVideo.window) {
 		DoomRPG_Error("Could not set %dx%d video mode: %s", video_w, video_h, SDL_GetError());
@@ -92,7 +124,7 @@ void SDL_InitVideo(void)
     // be smaller than our internal buffer size.
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
-    SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
+    SDL_RenderSetIntegerScale(sdlVideo.renderer, (SDL_bool)sdlVideo.integerScaling);
 
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
@@ -155,6 +187,11 @@ void SDL_InitVideo(void)
 void SDL_Close(void)
 {
 	printf("SDL_Close\n");
+	
+	// Release mouse and keyboard capture to prevent blocking on crash
+	SDL_SetRelativeMouseMode(SDL_FALSE);
+	SDL_ShowCursor(SDL_ENABLE);
+	
 	//Close game controller or joystick with haptics
 	if (sdlController.gGameController) {
 		SDL_GameControllerClose(sdlController.gGameController);
